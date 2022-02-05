@@ -6,7 +6,7 @@ value
 ('Marketing'),
 ('HR');
 
-INSERT INTO employee_role (job_title, salary,dept_id)
+INSERT INTO employee_role (job_title, salary, dept_id)
 VALUE 
 ('System Analysis',80000, 1),
 ('Network Administrator', 84000,1),
@@ -22,17 +22,18 @@ VALUE
 
 INSERT INTO employee (first_name, last_name, role_id, manager_id)
 VALUE
-  ('James', 'Smith', 1, 3),
-  ('Edward', 'Bellamy', 2, 3),
-  ('Henry', 'Butler',3,NULL),
-  ('Noah', 'Carrington', 4, 5),
-  ('Salah', 'ALi', 5, NUll),
-  ('Kunal', 'Singh', 6, 7),
-  ('Katherine', 'Mansfield', 7, NULL),
-  ('Virginia', 'Brown', 8, 9),
-  ('Sura', 'Davis', 9, NULL),
-  ('Olivi', 'Miller', 10, 11),
-  ('Mike', 'Ledger', 11, NULL);
+  ('Henry', 'Butler', 1, NULL),
+  ('James', 'Smith', 2, 1),
+  ('Edward', 'Bellamy', 3, 1),
+  ('Salah', 'ALi', 4, NUll),
+  ('Noah', 'Carrington', 5, 4),
+  ('Katherine', 'Mansfield', 6, NULL),
+  ('Kunal', 'Singh', 7, 6),
+  ('Sura', 'Davis', 8, NULL),
+  ('Virginia', 'Brown', 9, 8),
+  ('Mike', 'Ledger', 10, NULL),
+  ('Olivi', 'Miller', 11, 10);
+
 
   
   

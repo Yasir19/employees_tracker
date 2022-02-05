@@ -15,18 +15,29 @@ class QUERY {
   }
   ViewEmployees() {
     return this.db.query(
-      `SELECT employee.*, employee_role.job_title AS title,
-      department.dept_name AS department, employee_role.salary, 
-      CONCAT(manager.first_name," ",manager.last_name) AS manager
-      from emplyee LEFT JOIN employee_role ON employee.role_id = role.role_id
+      `SELECT employee.empl_id AS empl, employee.first_name, employee.last_name,
+      employee_role.job_title AS title,department.dept_name AS department,
+      employee_role.salary, CONCAT(manager.first_name," ",manager.last_name) AS manager
+      from employee LEFT JOIN employee_role ON employee.role_id = employee_role.role_id
       LEFT JOIN department On employee_role.dept_id = department.dept_id 
       LEFT JOIN employee manager ON
-      manager.empl_id = employee.manager_id`, (err, result =>{        
-          if (err) throw err;
-          console.table(result);
-      })
+      manager.empl_id = employee.manager_id`,
+      (err,result) => {
+        if (err) throw err;
+        console.table(result);
+      }
     );
   }
+  ViewEmployeesRole() {
+    return this.db.query( 
+        `select employee_role.job_title, employee_role.role_id, department.dept_name AS department,
+         employee_role.salary FROM employee_role LEFT JOIN department ON department.dept_id = employee_role.dept_id`,
+         (err, result) => {
+             if (err) throw err;
+             console.table(result);
+         }
+    );
+}
 }
 
 module.exports = new QUERY(db);

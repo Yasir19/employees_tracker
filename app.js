@@ -64,17 +64,24 @@ const view = () => {
       }
     });
 }
-Alldepartment = async () => {
-  const departments = await db.findAlldepartment();
+Alldepartment = () => {
+  const departments = db.findAlldepartment();
   console.log("=================");
   console.table(departments);
+  start();
 };
 
-allEmployee = async () => {
-    const employees = await db.ViewEmployees();
+allEmployee = () => {
+    const employees = db.ViewEmployees();
     console.log("=================");
     console.table(employees);
-
+    start();
+}
+viewRole = () => {
+    const roles = db.ViewEmployeesRole();
+    console.log("=================");
+    console.table(roles);
+    start();
 }
 // const findAlldepartment =() =>{
 //     connection.query(
