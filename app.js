@@ -1,5 +1,5 @@
 const inquirer = require("inquirer");
-const db = require("./db");
+const db = require("./config/connection");
 require("console.table");
 
 const start = () => {
@@ -89,12 +89,11 @@ const add = () => {
 };
 
 allDepartment = () => {
-  const departments = db.findAlldepartment();
-  const x = db.selectRole();
-  console.log("=================");
-  console.table(departments);
-  console.log(x);
-  start();
+  db.query(`SELECT dept_name, dept_id FROM department`, (err, result) => {
+    if (err) throw err;
+    console.table(result);
+    start();
+  });
 };
 const createDept = () => {
   inquirer
@@ -106,26 +105,37 @@ const createDept = () => {
       },
     ])
     .then((answers) => {
-      const dept = db.addDepartment(answers);
-      const viewdepartment = db.findAlldepartment();
-      (err) => {
-        if (err) throw err;
-        console.log(dept);
-        console.log("-------------------------------");
-        console.table(viewdepartment);
-        start();
-      };
+      db.query(
+        `INSERT INTO department(dept_name) VALUE (?)`,
+        [answers.department],
+        (err) => {
+          if (err) throw err;
+          console.log(
+            answers.department + " " + "was add to the department table"
+          );
+          
+        }
+      );
+      allDepartment();
     });
 };
-
 allEmployee = () => {
-  const employees = db.viewEmployees();
-  console.log("=================");
-  console.table(employees);
-  start();
+  db.query(
+    `SELECT employee.empl_id AS empl, employee.first_name, employee.last_name,
+employee_role.job_title AS title,department.dept_name AS department,
+employee_role.salary, CONCAT(manager.first_name," ",manager.last_name) AS manager
+from employee LEFT JOIN employee_role ON employee.role_id = employee_role.role_id
+LEFT JOIN department On employee_role.dept_id = department.dept_id 
+LEFT JOIN employee manager ON
+manager.empl_id = employee.manager_id`,
+    (err, result) => {
+      if (err) throw err;
+      console.table(result);
+    }
+  );
 };
+
 cerateEmployee = () => {
-  const newEmployee = [];
   inquirer
     .prompt([
       {
@@ -139,45 +149,67 @@ cerateEmployee = () => {
         message: "Please enter employee last name",
       },
     ])
-    .then(async (answers) => {
+    .then(answers => {
       const employee = [answers.firstName, answers.lastName];
-      const roles = await db.selectRole();
+      let roles = `SELECT employee_role.role_id, employee_role.job_title FROM employee_role`;
+      db.query(roles, (err,result) => {
+          if(err) throw err;
+          const roleArr = result.map(({ role_id, job_title }) => ({
+            name: job_title,
+            value: role_id,
+          })); 
       inquirer
         .prompt([
           {
             type: "list",
             name: "role",
-            choices: roles,
+            message: "Pleas select the job title",
+            choices: roleArr,
           },
         ])
-        .then((selectedRole) => {
+        .then(selectedRole => {
           const role = selectedRole.role;
           employee.push(role);
-          const mang = db.selectManager();
+          const manager =`SELECT * FROM employee`;
+          db.query(manager,(err, result)=>{
+              if(err) throw err;
+              const managArr = result.map(({ manager_id, first_name, last_name }) => ({
+                name: first_name + " " + last_name,
+                value: manager_id,
+              }));
           inquirer
             .prompt([
               {
                 type: "list",
                 name: "manager",
                 message: "Please select employee's manager",
-                choices: mang,
+                choices: managArr,
               },
             ])
-            .then((selectedManager) => {
+            .then(selectedManager => {
               const manager = selectedManager.manager;
               employee.push(manager);
-              const newEmployee = db.addEmployee(employee);
-              console.log(newEmployee);
+              const sql =`INSERT INTO employee(first_name, last_name, role_id, manager_id) VALUE (?,?,?,?)`;
+              db.query(sql,employee, (err)=>{
+                  if(err) throw err;
+                  console.log(' A new employee been add to employee table');
+              })
               allEmployee();
             });
         });
     });
+});
+    });
 };
 viewRole = () => {
-  const roles = db.ViewEmployeesRole();
-  console.log("=================");
-  console.table(roles);
-  start();
+  db.query(
+    `select employee_role.job_title, employee_role.role_id, department.dept_name AS department,
+           employee_role.salary FROM employee_role LEFT JOIN department ON department.dept_id = employee_role.dept_id`,
+    (err, result) => {
+      if (err) throw err;
+      console.table(result);
+    }
+  );
 };
 
 // const findAlldepartment =() =>{
