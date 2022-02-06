@@ -139,9 +139,9 @@ cerateEmployee = () => {
         message: "Please enter employee last name",
       },
     ])
-    .then((answers) => {
+    .then(async (answers) => {
       const employee = [answers.firstName, answers.lastName];
-      const roles = db.selectRole();
+      const roles = await db.selectRole();
       inquirer
         .prompt([
           {

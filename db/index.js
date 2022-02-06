@@ -51,34 +51,33 @@ class QUERY {
     );
   }
   selectRole() {
-      return this.db.query(
-          `SELECT employee_role.role_id, employee_role.job_title FROM employee_role`, (err, result) =>{
-              if(err) throw err;
-              const roles = result.map(({role_id, job_title }) => ({name:job_title, value:role_id}));
-              console.log(roles);
-          }
-          );
-  }
-  selectManager() {
-      return this.db.query(
-          `SELECT * FROM employee`,(err,result) => {
-              if(err) throw err;
-              const managers = result.map(({ manager_id ,first_name, last_name }) => ({name: first_name+' '+ last_name, value:manager_id}))
-          }
-
-      );
-  }
-  addEmployee = (answers) => {
-      const sql = `INSERT INTO employee(first_name, last_name, role_id, manager_id) VALUE (?,?,?,?)`;
-      const params = [ 
-       answers.employee
-      ];
-    return this.db.query(sql, params, 
-      (err) => {
+    return this.db.query(
+      `SELECT employee_role.role_id, employee_role.job_title FROM employee_role`,
+      (err, result) => {
         if (err) throw err;
-        console.log('employee been add to employee table');
+        const roles = result.map(({ role_id, job_title }) => ({
+          name: job_title,
+          value: role_id,
+        }));
       }
     );
+  }
+  selectManager() {
+    return this.db.query(`SELECT * FROM employee`, (err, result) => {
+      if (err) throw err;
+      const managers = result.map(({ manager_id, first_name, last_name }) => ({
+        name: first_name + " " + last_name,
+        value: manager_id,
+      }));
+    });
+  }
+  addEmployee = (answers) => {
+    const sql = `INSERT INTO employee(first_name, last_name, role_id, manager_id) VALUE (?,?,?,?)`;
+    const params = [answers.employee];
+    return this.db.query(sql, params, (err) => {
+      if (err) throw err;
+      console.log("employee been add to employee table");
+    });
   };
 }
 
