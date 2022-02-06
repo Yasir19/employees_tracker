@@ -37,6 +37,17 @@ class QUERY {
              console.table(result);
          }
     );
+
+}
+addedDepartment(answers) {
+    return this.db.query(
+        'INSERT INTO department(dept_name) VALUE (?)',
+         [answers.department],
+        (err)=> {
+            if(err) throw err;
+            console.log(answers.department +' '+'was add to the department table')
+        }
+    )
 }
 }
 

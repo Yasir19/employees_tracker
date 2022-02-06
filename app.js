@@ -51,7 +51,7 @@ const view = () => {
     .then((res) => {
       switch (res.view) {
         case "View By Department":
-          Alldepartment();
+          allDepartment();
           break;
         case "View All Employee":
           allEmployee();
@@ -64,24 +64,86 @@ const view = () => {
       }
     });
 }
-Alldepartment = () => {
+
+const add = () => {
+    inquirer
+   .prompt([
+     {
+       type: "list",
+       name: "add",
+       message: "Select one to add:",
+       choices: [
+         'Department',
+         'Employee',
+         'Employee Role',
+       ],
+     },
+   ])
+   .then((res) => {
+     switch (res.add) {
+       case "Department":
+        createDept();
+         break;
+       case "Employee":
+         addEmployee();
+         break;
+       case "Employee Role":
+         addRole();
+         break;
+         default:
+             console.log('default');
+     }
+   });
+}
+
+
+
+allDepartment = () => {
   const departments = db.findAlldepartment();
   console.log("=================");
-  console.table(departments);
+  console.table( departments);
   start();
 };
+const createDept = () =>{
+    inquirer 
+    .prompt([
+        {
+            name: 'department',
+            type: 'input',
+            message: 'Please enter the department name'
+        }
+    ]).then((answers) => {
+        const dept =db.addedDepartment(answers);
+        const viewdepartment = db.findAlldepartment();
+        (err) =>{
+            if (err) throw err
+            console.log(dept);
+            console.log('-------------------------------')
+            console.table(viewdepartment);
+            start()
+        }
+    })
+} 
 
 allEmployee = () => {
     const employees = db.ViewEmployees();
     console.log("=================");
-    console.table(employees);
+    console.table( employees);
     start();
 }
 viewRole = () => {
     const roles = db.ViewEmployeesRole();
     console.log("=================");
-    console.table(roles);
+    console.table( roles);
     start();
+}
+
+addDepartment = () => {
+    const department = db.addedDepartment();
+    console.log("=================");
+    console.log(department);
+    start();
+
 }
 // const findAlldepartment =() =>{
 //     connection.query(
