@@ -1,6 +1,6 @@
 const inquirer = require("inquirer");
 const db = require("./config/connection");
-const validator = require('./input_checker/validate');
+const validator = require("./input_checker/validate");
 
 table = require("console.table");
 
@@ -128,13 +128,13 @@ const createDept = () => {
         name: "department",
         type: "input",
         message: "Please enter the department name",
-        validate: addDepartment =>{
-            if(addDepartment){
-                return true
-            }else {
-                console.log('Department name is required')
-            }
-        }
+        validate: (addDepartment) => {
+          if (addDepartment) {
+            return true;
+          } else {
+            console.log("Department name is required");
+          }
+        },
       },
     ])
     .then((answers) => {
@@ -177,25 +177,25 @@ const cerateEmployee = () => {
         name: "firstName",
         type: "input",
         message: "Please enter employee first name",
-        validate: isFirstname => {
-            if(isFirstname){
-                return true;
-            } else {
-                return 'Employee name is required'
-        }
-    }
+        validate: (isFirstname) => {
+          if (isFirstname) {
+            return true;
+          } else {
+            return "Employee name is required";
+          }
+        },
       },
       {
         name: "lastName",
         type: "input",
         message: "Please enter employee last name",
-        validate: isLasrName =>{
-            if(isLasrName){
-                return true;
-            } else {
-                return 'Employee lastname is required'
-            }
-        }
+        validate: (isLasrName) => {
+          if (isLasrName) {
+            return true;
+          } else {
+            return "Employee lastname is required";
+          }
+        },
       },
     ])
     .then((answers) => {
@@ -300,20 +300,19 @@ const createRole = () => {
             name: "newRole",
             type: "input",
             message: "What is the name of your role?",
-            validate: answer => {
-                if(answer){
-                    return true;
-                } else {
-                    return 'The Name of the role is required'
-                }
-            }
+            validate: (answer) => {
+              if (answer) {
+                return true;
+              } else {
+                return "The Name of the role is required";
+              }
+            },
           },
           {
             name: "salary",
             type: "input",
             message: "please enter the salary associated to this role",
-            validate: validator.validateSalary
-            
+            validate: validator.validateSalary,
           },
         ])
         .then((answers) => {
@@ -338,127 +337,68 @@ const createRole = () => {
   });
 };
 const editRole = () => {
-    let sql = `SELECT employee.empl_id, employee.first_name, employee.last_name, employee_role.role_id
+  let sql = `SELECT employee.empl_id, employee.first_name, employee.last_name, employee_role.role_id
     FROM employee, employee_role, department WHERE department.dept_id = employee_role.dept_id AND employee_role.role_id = employee.role_id`;
-    db.query(sql, (error, res)=>{
+  db.query(sql, (error, res) => {
+    if (error) throw error;
+    let emplArr = [];
+    res.forEach((employee) => {
+      emplArr.push(`${employee.first_name} ${employee.last_name}`);
+    });
+    db.query(
+      `SELECT employee_role.role_id, employee_role.job_title FROM employee_role`,
+      (error, res) => {
         if (error) throw error;
-        let emplArr = [];
-        res.forEach((employee) =>{
-            emplArr.push(`${employee.first_name} ${employee.last_name}`);
+        let roleArr = [];
+        res.forEach((employee_role) => {
+          roleArr.push(employee_role.job_title);
         });
-        db.query(`SELECT employee_role.role_id, employee_role.job_title FROM employee_role`,(error, res)=>{
-            if (error) throw error;
-            let roleArr = [];
-            res.forEach((employee_role)=>{
-                roleArr.push(employee_role.job_title);
-            });
-            inquirer
-        .prompt([
-          {
-            name: "selectEmployee",
-            type: "list",
-            message: "Select an employee to update his role",
-            choices: emplArr,
-          },
-          {
-            name: "selectRole",
-            type: "list",
-            message: "What is the employee  new role?",
-            choices: roleArr,
-          },
-        ]).then((answers)=>{
+        inquirer
+          .prompt([
+            {
+              name: "selectEmployee",
+              type: "list",
+              message: "Select an employee to update his role",
+              choices: emplArr,
+            },
+            {
+              name: "selectRole",
+              type: "list",
+              message: "What is the employee  new role?",
+              choices: roleArr,
+            },
+          ])
+          .then((answers) => {
             let roleId, emplId;
-            res.forEach((employee_role)=>{
-                if (answers.selectRole === employee_role.job_title) {
-                    roleId = employee_role.role_id;
-                  }
+            res.forEach((employee_role) => {
+              if (answers.selectRole === employee_role.job_title) {
+                roleId = employee_role.role_id;
+              }
             });
-            res.forEach((employee)=>{
-                if (
-                    answers.selectEmployee ===
-                    `${employee.first_name} ${employee.last_name}`
-                  ) {
-                    emplId = employee.empl_id;
-                  }
+            res.forEach((employee) => {
+              if (
+                answers.selectEmployee ===
+                `${employee.first_name} ${employee.last_name}`
+              ) {
+                emplId = employee.empl_id;
+              }
             });
-            db.query(`UPDATE employee SET role_id = ? WHERE empl_id = ?`,[roleId, emplId], (err)=>{
-                if(err) throw err;
+            db.query(
+              `UPDATE employee SET role_id = ? WHERE empl_id = ?`,
+              [roleId, emplId],
+              (err) => {
+                if (err) throw err;
                 console.log(`Employee Role Updated`);
-                allEmployee ();
-                console.log({emplId,roleId});
+                allEmployee();
+                console.log({ emplId, roleId });
                 console.log(answers.selectEmployee);
                 start();
-            });
-        });
-        });
-
-    });
+              }
+            );
+          });
+      }
+    );
+  });
 };
-
-
-
-// const editRole = () => {
-//     let sql = `SELECT employee.empl_id, employee.first_name, employee.last_name, employee_role.role_id
-//    FROM employee, employee_role, department WHERE department.dept_id = employee_role.dept_id AND employee_role.role_id = employee.role_id`;
-//   db.query(sql, (error, res) => {
-//       if (error) throw error;
-//      let emplArr = [];
-//       res.forEach((employee) => {
-//        emplArr.push(`${employee.first_name} ${employee.last_name}`);
-//     });
-
-//     let sql = `SELECT employee_role.role_id, employee_role.job_title FROM employee_role`;
-//     db.query(sql, (error, res) => {
-//       if (error) throw error;
-//       let roleArr = [];
-//       res.forEach((employee_role) => {
-//         roleArr.push(employee_role.job_title);
-//       });
-
-//       inquirer
-//         .prompt([
-//           {
-//             name: "selectEmployee",
-//             type: "list",
-//             message: "Select an employee to update his role",
-//             choices: emplArr,
-//           },
-//           {
-//             name: "selectRole",
-//             type: "list",
-//             message: "What is the employee  new role?",
-//             choices: roleArr,
-//           },
-//         ])
-//         .then((answer) => {
-//           let roleId, emplId;
-
-//           res.forEach((employee_role) => {
-//             if (answer.selectRole === employee_role.job_title) {
-//               roleId = employee_role.role_id;
-//             }
-//           });
-
-//           res.forEach((employee) => {
-//             if (
-//               answer.selectEmployee ===
-//               `${employee.first_name} ${employee.last_name}`
-//             ) {
-//               emplId = employee.empl_id;
-//             }
-//           });
-
-//           let sqls = `UPDATE employee SET employee.role_id = ? WHERE employee.empl_id = ?`;
-//           db.query(sqls, [roleId, emplId], (err) => {
-//             if (err) throw err;
-//             console.log(`Employee Role Updated`);
-//             allEmployee ();
-//             start();
-//           });
-//         });
-//     });
-//   });
-// };
-
 
 start();
