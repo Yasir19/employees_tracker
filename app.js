@@ -1,8 +1,14 @@
 const inquirer = require("inquirer");
 const db = require("./config/connection");
 const validator = require("./input_checker/validate");
-
 table = require("console.table");
+const logo = require("asciiart-logo");
+
+ init =() => {
+    const logoIcon = logo({name: 'Employee Manager'}).render()
+    console.log(logoIcon)
+    start();
+}
 
 const start = () => {
   inquirer
@@ -31,8 +37,6 @@ const start = () => {
           console.log("=======================");
           db.end();
           break;
-        default:
-          console.log("default");
       }
     });
 };
@@ -58,8 +62,6 @@ const view = () => {
         case "View By Role":
           viewRole();
           break;
-        default:
-          console.log("default");
       }
     });
 };
@@ -85,8 +87,6 @@ const add = () => {
         case "Employee Role":
           createRole();
           break;
-        default:
-          console.log("default");
       }
     });
 };
@@ -98,23 +98,18 @@ const update = () => {
         name: "edit",
         type: "list",
         message: "Please select on to edit",
-        choices: ["Employee", "Employee Role"],
+        choices: ["Employee Role"],
       },
     ])
     .then((res) => {
       switch (res.edit) {
-        case "Employee":
-          editEmployee();
-          break;
         case "Employee Role":
           editRole();
           break;
-        default:
-          console.lof("default");
+
       }
     });
 };
-
 allDepartment = () => {
   db.query(`SELECT dept_name, dept_id FROM department`, (err, result) => {
     if (err) throw err;
@@ -135,7 +130,7 @@ const createDept = () => {
           } else {
             console.log("Department name is required");
           }
-        },
+        }
       },
     ])
     .then((answers) => {
@@ -147,14 +142,13 @@ const createDept = () => {
           console.log(
             answers.department + " " + "was add to the department table"
           );
+          allDepartment();
         }
       );
-      allDepartment();
-      start();
     });
 };
 
-const allEmployee = () => {
+allEmployee = () => {
   db.query(
     `SELECT employee.empl_id AS empl, employee.first_name, employee.last_name,
 employee_role.job_title AS title,department.dept_name AS department,
@@ -171,7 +165,7 @@ manager.empl_id = employee.manager_id`,
   );
 };
 
-const cerateEmployee = () => {
+cerateEmployee = () => {
   inquirer
     .prompt([
       {
@@ -182,9 +176,10 @@ const cerateEmployee = () => {
           if (isFirstname) {
             return true;
           } else {
-            return "Employee name is required";
+            console.log("Employee name is required");
+            return false;
           }
-        },
+        }
       },
       {
         name: "lastName",
@@ -194,9 +189,10 @@ const cerateEmployee = () => {
           if (isLasrName) {
             return true;
           } else {
-            return "Employee lastname is required";
+            console.log("Employee lastname is required");
+            return false;
           }
-        },
+        }
       },
     ])
     .then((answers) => {
@@ -245,9 +241,9 @@ const cerateEmployee = () => {
                   db.query(sql, employee, (err) => {
                     if (err) throw err;
                     console.log(" A new employee been add to employee table");
+                    allEmployee();
+                    
                   });
-                  allEmployee();
-                  start();
                 });
             });
           });
@@ -255,8 +251,7 @@ const cerateEmployee = () => {
     });
 };
 
-const editEmployee = () => {};
-const viewRole = () => {
+viewRole = () => {
   db.query(
     `select employee_role.job_title, employee_role.role_id, department.dept_name AS department,
            employee_role.salary FROM employee_role LEFT JOIN department ON department.dept_id = employee_role.dept_id`,
@@ -268,7 +263,7 @@ const viewRole = () => {
   );
 };
 
-const createRole = () => {
+createRole = () => {
   db.query(`SELECT * FROM department`, (err, res) => {
     if (err) throw err;
     let deptArr = [];
@@ -305,7 +300,8 @@ const createRole = () => {
               if (answer) {
                 return true;
               } else {
-                return "The Name of the role is required";
+                console.log("The Name of the role is required");
+                return false;
               }
             },
           },
@@ -331,13 +327,14 @@ const createRole = () => {
             if (err) throw err;
             console.log("Role successfullt created");
             viewRole();
-            start();
+            
           });
         });
     };
   });
 };
-const editRole = () => {
+
+ editRole = () => {
     db.query(`SELECT * FROM employee`,(err,res)=>{
         if (err) throw err;
         const employee =res.map(({empl_id, first_name, last_name})=>({
@@ -382,7 +379,7 @@ const editRole = () => {
                     )
                     console.log('Employee Role Updated');
                     allEmployee();
-                    start();
+                  
                 });
             });
         });
@@ -390,4 +387,4 @@ const editRole = () => {
 };
 
 
-start();
+init();

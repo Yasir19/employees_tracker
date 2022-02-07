@@ -1,4 +1,3 @@
-const util = require("util");
 const mysql = require("mysql2")
 require('dotenv').config();
 // Conect to database
@@ -19,8 +18,5 @@ const db = mysql.createConnection(
     console.log("connected to the employee_tracker_db.")
   
   });
-
-  db.query = util.promisify(db.query);
-
   module.exports = db;
 
