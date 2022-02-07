@@ -29,6 +29,7 @@ const start = () => {
           console.log("=======================");
           console.log("All done");
           console.log("=======================");
+          db.end();
           break;
         default:
           console.log("default");
@@ -337,68 +338,56 @@ const createRole = () => {
   });
 };
 const editRole = () => {
-  let sql = `SELECT employee.empl_id, employee.first_name, employee.last_name, employee_role.role_id
-    FROM employee, employee_role, department WHERE department.dept_id = employee_role.dept_id AND employee_role.role_id = employee.role_id`;
-  db.query(sql, (error, res) => {
-    if (error) throw error;
-    let emplArr = [];
-    res.forEach((employee) => {
-      emplArr.push(`${employee.first_name} ${employee.last_name}`);
-    });
-    db.query(
-      `SELECT employee_role.role_id, employee_role.job_title FROM employee_role`,
-      (error, res) => {
-        if (error) throw error;
-        let roleArr = [];
-        res.forEach((employee_role) => {
-          roleArr.push(employee_role.job_title);
-        });
+    db.query(`SELECT * FROM employee`,(err,res)=>{
+        if (err) throw err;
+        const employee =res.map(({empl_id, first_name, last_name})=>({
+            name: first_name + " " + last_name,
+            value:empl_id
+        }))
         inquirer
-          .prompt([
+        .prompt([
             {
-              name: "selectEmployee",
-              type: "list",
-              message: "Select an employee to update his role",
-              choices: emplArr,
-            },
-            {
-              name: "selectRole",
-              type: "list",
-              message: "What is the employee  new role?",
-              choices: roleArr,
-            },
-          ])
-          .then((answers) => {
-            let roleId, emplId;
-            res.forEach((employee_role) => {
-              if (answers.selectRole === employee_role.job_title) {
-                roleId = employee_role.role_id;
-              }
-            });
-            res.forEach((employee) => {
-              if (
-                answers.selectEmployee ===
-                `${employee.first_name} ${employee.last_name}`
-              ) {
-                emplId = employee.empl_id;
-              }
-            });
-            db.query(
-              `UPDATE employee SET role_id = ? WHERE empl_id = ?`,
-              [roleId, emplId],
-              (err) => {
+                name: "selectedEmpl",
+                type: "list",
+                message: "Select an employee to update his role",
+                choices:employee
+            }
+        ])
+        .then((answer)=>{
+            const saveName= answer.selectedEmpl;
+            db.query(`SELECT * FROM employee_role`,(err, res)=>{
                 if (err) throw err;
-                console.log(`Employee Role Updated`);
-                allEmployee();
-                console.log({ emplId, roleId });
-                console.log(answers.selectEmployee);
-                start();
-              }
-            );
-          });
-      }
-    );
-  });
+                const role = res.map(({role_id, job_title})=>({
+                    name: job_title,
+                    value: role_id,
+                }))
+                inquirer
+                .prompt([
+                    {
+                        name: "selectRole",
+                        type: "list",
+                        message: "What is the employee  new role?",
+                        choices:role
+                    }
+                ]).then((answers)=>{
+                    const saveRole=answers.selectRole;
+                    console.log(saveName);
+                        console.log(saveRole);
+                    db.query(`UPDATE employee SET ? WHERE empl_id = ?`,
+                    [
+                        {
+                            role_id:saveRole
+                        }, saveName
+                    ],
+                    )
+                    console.log('Employee Role Updated');
+                    allEmployee();
+                    start();
+                });
+            });
+        });
+    });
 };
+
 
 start();
