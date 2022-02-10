@@ -266,16 +266,13 @@ viewRole = () => {
 createRole = () => {
   db.query(`SELECT * FROM department`, (err, res) => {
     if (err) throw err;
-    let deptArr = [];
-    res.forEach((department) => {
-      deptArr.push(department.dept_name);
-    });
-
-    deptArr.push("newDept");
+    deptArr=[];
+   res.forEach((department)=>{deptArr.push(department.dept_name);});
+   deptArr.push('Create Department')
     inquirer
       .prompt([
         {
-          name: "departentName",
+          name: "depName",
           type: "list",
           meassage:
             "Please select the departemnt that you want to add the role to!",
@@ -317,10 +314,11 @@ createRole = () => {
           let deptId;
 
           res.forEach((department) => {
-            if (data.deptArr === department.dept_name) {
+            if(data.depName === department.dept_name) {
               deptId = department.dept_id;
             }
           });
+          console.log("deptid",deptId)
           let sql = `INSERT INTO employee_role(job_title, salary, dept_id) VALUES (?,?,?)`;
           let params = [createdRole, answers.salary, deptId];
           db.query(sql, params, (err) => {
