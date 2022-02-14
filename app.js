@@ -4,12 +4,13 @@ const validator = require("./input_checker/validate");
 table = require("console.table");
 const logo = require("asciiart-logo");
 
+// function to start the app 
  init =() => {
     const logoIcon = logo({name: 'Employee Manager'}).render()
     console.log(logoIcon)
     start();
 }
-
+// start function to call the main to do list 
 const start = () => {
   inquirer
     .prompt([
@@ -40,7 +41,7 @@ const start = () => {
       }
     });
 };
-
+// view function to return user choise 
 const view = () => {
   inquirer
     .prompt([
@@ -65,7 +66,7 @@ const view = () => {
       }
     });
 };
-
+// add function to reder choises for the user 
 const add = () => {
   inquirer
     .prompt([
@@ -90,7 +91,7 @@ const add = () => {
       }
     });
 };
-
+// update function 
 const update = () => {
   inquirer
     .prompt([
@@ -110,20 +111,28 @@ const update = () => {
       }
     });
 };
+// view all department 
 allDepartment = () => {
+  // sql query to get all the department table infromation 
   db.query(`SELECT dept_name, dept_id FROM department`, (err, result) => {
+    // in case of an err throw the err 
     if (err) throw err;
+    // if no err print the table 
     console.table(result);
+    // call the main menu
     start();
   });
 };
+// create new department 
 const createDept = () => {
+  // ask the user to input the department name 
   inquirer
     .prompt([
       {
         name: "department",
         type: "input",
         message: "Please enter the department name",
+        // validate the input 
         validate: (addDepartment) => {
           if (addDepartment) {
             return true;
@@ -133,7 +142,9 @@ const createDept = () => {
         }
       },
     ])
+    // get the input value 
     .then((answers) => {
+      // incert the input value by using sql query INSERT into table 
       db.query(
         `INSERT INTO department(dept_name) VALUE (?)`,
         [answers.department],
@@ -142,13 +153,15 @@ const createDept = () => {
           console.log(
             answers.department + " " + "was add to the department table"
           );
+          // call allDepartment function to check if the user want to insert another input
           allDepartment();
         }
       );
     });
 };
-
+// view all employee
 allEmployee = () => {
+  // sql query ti select the employee table and other associateion data
   db.query(
     `SELECT employee.empl_id AS empl, employee.first_name, employee.last_name,
 employee_role.job_title AS title,department.dept_name AS department,
@@ -164,9 +177,10 @@ manager.empl_id = employee.manager_id`,
     }
   );
 };
-
+// creat employee function
 cerateEmployee = () => {
   inquirer
+  // prompt the user to enter the employee first and last name 
     .prompt([
       {
         name: "firstName",
@@ -197,9 +211,11 @@ cerateEmployee = () => {
     ])
     .then((answers) => {
       const employee = [answers.firstName, answers.lastName];
+      // using sql query to select the role 
       let roles = `SELECT employee_role.role_id, employee_role.job_title FROM employee_role`;
       db.query(roles, (err, result) => {
         if (err) throw err;
+        // create role array 
         const roleArr = result.map(({ role_id, job_title }) => ({
           name: job_title,
           value: role_id,
@@ -210,33 +226,40 @@ cerateEmployee = () => {
               type: "list",
               name: "role",
               message: "Pleas select the job title",
+              // using role array to allow the user to select from 
               choices: roleArr,
             },
           ])
+          // get the answer and push it to employee array 
           .then((selectedRole) => {
             const role = selectedRole.role;
             employee.push(role);
+            // select all the employee 
             const manager = `SELECT * FROM employee`;
             db.query(manager, (err, result) => {
               if (err) throw err;
+              //generate manager array 
               const managArr = result.map(
-                ({ manager_id, first_name, last_name }) => ({
+                ({ empl_id , first_name, last_name }) => ({
                   name: first_name + " " + last_name,
-                  value: manager_id,
-                })
-              );
+                  value: empl_id }));
               inquirer
                 .prompt([
                   {
                     type: "list",
-                    name: "manager",
+                    name: "leader",
                     message: "Please select employee's manager",
+                    // user the generated manager array to allow the user to select from 
                     choices: managArr,
                   },
                 ])
-                .then((selectedManager) => {
-                  const manager = selectedManager.manager;
-                  employee.push(manager);
+                // get the selection and push it to the employee array 
+                .then((data) => {
+                  console.log(data)
+                  const mang = data.leader;
+                  employee.push(mang);
+                  console.log(mang);
+                  // using sql query to insert the generated employee array into the db
                   const sql = `INSERT INTO employee(first_name, last_name, role_id, manager_id) VALUE (?,?,?,?)`;
                   db.query(sql, employee, (err) => {
                     if (err) throw err;
@@ -263,10 +286,13 @@ viewRole = () => {
   );
 };
 
+
 createRole = () => {
+  // select all department 
   db.query(`SELECT * FROM department`, (err, res) => {
     if (err) throw err;
     deptArr=[];
+    // create a dynamic array and push it to the prompt to allow the user to select from 
    res.forEach((department)=>{deptArr.push(department.dept_name);});
    deptArr.push('Create Department')
     inquirer
@@ -276,16 +302,21 @@ createRole = () => {
           type: "list",
           meassage:
             "Please select the departemnt that you want to add the role to!",
+            // dynamically generated array 
           choices: deptArr,
         },
       ])
       .then((answers) => {
-        if (answers.deptArr === "newDetp") {
-          this.createDept();
+        // check if the user select new department 
+        if (answers.depName === "Create Department") {
+          // call the creatDept function to create new department 
+          createDept();
         } else {
+          // passs the answer to the add role function 
           addRole(answers);
         }
       });
+
     addRole = (data) => {
       inquirer
         .prompt([
@@ -309,12 +340,15 @@ createRole = () => {
             validate: validator.validateSalary,
           },
         ])
+        // get the answer from the prompt 
         .then((answers) => {
           let createdRole = answers.newRole;
           let deptId;
 
           res.forEach((department) => {
+            // check if the slected department match exists department 
             if(data.depName === department.dept_name) {
+              // get the id from the exist deparment 
               deptId = department.dept_id;
             }
           });
@@ -335,6 +369,7 @@ createRole = () => {
  editRole = () => {
     db.query(`SELECT * FROM employee`,(err,res)=>{
         if (err) throw err;
+        //create dynamic array to store the employee name 
         const employee =res.map(({empl_id, first_name, last_name})=>({
             name: first_name + " " + last_name,
             value:empl_id
@@ -350,6 +385,7 @@ createRole = () => {
         ])
         .then((answer)=>{
             const saveName= answer.selectedEmpl;
+            // create a dynamic list for roles 
             db.query(`SELECT * FROM employee_role`,(err, res)=>{
                 if (err) throw err;
                 const role = res.map(({role_id, job_title})=>({

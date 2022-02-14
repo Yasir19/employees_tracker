@@ -1,3 +1,4 @@
+-- seeding data into the table
 INSERT INTO department (dept_name)
 value
 ('IT'),
